@@ -3,7 +3,7 @@ package org.galatea.starter.service.object;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import lombok.Data;
 import org.galatea.starter.utils.json.serialization.DateDeserializer;
@@ -17,7 +17,7 @@ public class AvMetaData {
   private String symbol;
   @JsonProperty("3. Last Refreshed")
   @JsonDeserialize(using = DateDeserializer.class)
-  private LocalDateTime lastRefresh;
+  private OffsetDateTime lastRefresh;
   @JsonProperty("4. Output Size")
   private String outputSize;
   @JsonProperty("5. Time Zone")

@@ -42,7 +42,7 @@ public class DateTimeUtils {
 
     //send to map for easy searching
     Map<LocalDate, StockSymbol> stockDataMap = new HashMap<>();
-    stockData.forEach(stock -> stockDataMap.put(stock.getTradeDate(), stock));
+    stockData.forEach(stock -> stockDataMap.put(stock.getTradeDate().toLocalDate(), stock));
 
     //<= and ++day because we want the first to be exclusive and the second to be inclusive.
     for (int day = 1; day <= ChronoUnit.DAYS.between(startOfRange, endOfRange); day++) {
@@ -59,9 +59,7 @@ public class DateTimeUtils {
         continue;
       }
 
-      LocalDate local = date;
-      if (!stockDataMap.containsKey(local)) {
-        System.out.println("missing date:" + local);
+      if (!stockDataMap.containsKey(date)) {
         return true;
       }
     }

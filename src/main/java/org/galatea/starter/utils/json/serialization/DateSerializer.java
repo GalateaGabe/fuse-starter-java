@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class DateSerializer extends JsonSerializer<LocalDate> {
+public class DateSerializer extends JsonSerializer<OffsetDateTime> {
 
   @Override
-  public void serialize(LocalDate localDate, JsonGenerator jsonGenerator,
+  public void serialize(OffsetDateTime offsetDateTime, JsonGenerator jsonGenerator,
       SerializerProvider serializerProvider) throws IOException {
-    jsonGenerator.writeString(localDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+    jsonGenerator.writeString(offsetDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE));
   }
 }

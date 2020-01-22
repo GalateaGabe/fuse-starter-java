@@ -1,7 +1,9 @@
 package org.galatea.starter.entrypoint;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -56,8 +58,10 @@ public class StockPriceRestController {
   public StockDataResponse getRecentStockPrice(@RequestParam(name = "stock") final String symbol,
       @RequestParam(name = "days") final int days) {
     try (Session session = getCurrentSession();) {
+      final Instant start = Instant.now();
       final LocalDate startOfToday = LocalDate.now();
       final LocalDate startOfRange = startOfToday.minusDays(days + 1L);
+      final ZoneOffset zone = ZoneOffset.ofHours(-5);
 
       StockRequestMetaData metaData = new StockRequestMetaData();
       metaData.setSymbol(symbol);
@@ -68,7 +72,8 @@ public class StockPriceRestController {
 
       //having this data as both a map
       List<StockSymbol> stockDataList =
-          DatabaseConnectionHandler.getStockData(stockId, startOfRange, session);
+          DatabaseConnectionHandler.getStockData(stockId, startOfRange.atStartOfDay().atOffset(
+              zone), session);
 
       //if the list is empty, or there are days missing from the request, we have to fetch all days.
       //TODO - ideally we would check whether or not the missing days are within the short fetch range
@@ -79,14 +84,14 @@ public class StockPriceRestController {
         AvResponse response = avService.getAlphaVantageStockData(symbol, days > 100);
         StockSymbol.updateAll(stockDataList, stockId, response);
         DatabaseConnectionHandler.updateStockRecords(stockDataList, stockId, session);
-        cacheStatus = "missing days in cache were added during this request. {1}";
+        cacheStatus = "missing days in cache were added during this request.";
       } else {
         //filter list to any days that have incomplete stock data, excluding today
         //ie - were acquired mid-day on a business day
         List<StockSymbol> requireUpdates =
             stockDataList.stream().filter(s ->
                 DateTimeUtils.duringBusinessHours(s.getUpdateTime())
-                    && s.getTradeDate().isBefore(startOfToday)
+                    && s.getTradeDate().toLocalDate().isBefore(startOfToday)
             ).collect(Collectors.toList());
 
         //if there are any days with incomplete data, get a new fresh list and update them.
@@ -96,33 +101,40 @@ public class StockPriceRestController {
           DatabaseConnectionHandler.updateStockRecords(requireUpdates, stockId, session);
           //otherwise, if the stock market is still open (or was open the last
           //time we checked), get new data for today.
-          cacheStatus = "cache data was added / updated during this request. {2}";
+          cacheStatus = "cache data was added / updated during this request.";
         } else {
           StockSymbol latest = stockDataList.get(0);
           //if there's a request from today, and today's request
           // is from business hours, then we have to update the data
-          if (!latest.getTradeDate().isBefore(startOfToday) && DateTimeUtils
+          if (!latest.getTradeDate().toLocalDate().isBefore(startOfToday) && DateTimeUtils
               .duringBusinessHours(latest.getUpdateTime())) {
             StockSymbol refresh = avService.getStockPricesForRange(symbol, false).get(0);
             latest.update(refresh);
             DatabaseConnectionHandler.updateStockRecord(latest, stockId, session);
             cacheStatus =
-                "data for today has been updated as of " + latest.getUpdateTime() + " {3}";
+                "data for today has been updated as of " + latest.getUpdateTime() + ".";
           } else {
-            cacheStatus = "all data in this request has come from the local cache. {4}";
+            cacheStatus = "all data in this request has come from the local cache.";
 
           }
         }
       }
 
-      metaData.addMessage("cache", cacheStatus);
       //filter out any remaining days before the start date
       stockDataList =
-          stockDataList.stream().filter(stock -> !stock.getTradeDate().isBefore(startOfRange))
+          stockDataList.stream()
+              .filter(stock -> !stock.getTradeDate().toLocalDate().isBefore(startOfRange))
               .collect(Collectors.toList());
       //session.close doesn't do this automatically?!
       session.clear();
       Collections.sort(stockDataList);
+      Collections.reverse(stockDataList);
+
+      final Instant end = Instant.now();
+      metaData.addMessage("days", "there were ",days - stockDataList.size(), " non-business days in the requested range.");
+      metaData.addMessage("time", "the request took ", start.toEpochMilli() - end.toEpochMilli(), "ms to complete.");
+
+
       return new StockDataResponse(metaData, stockDataList);
     }
   }

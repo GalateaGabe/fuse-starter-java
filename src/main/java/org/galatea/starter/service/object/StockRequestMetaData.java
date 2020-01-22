@@ -13,8 +13,15 @@ public class StockRequestMetaData {
   private String symbol;
   private List<StockRequestMetaDataMessage> messages = new ArrayList<>();
 
-  public void addMessage(@NonNull String name, @NonNull String body){
-    messages.add(new StockRequestMetaDataMessage(name, body));
+  public void addMessage(@NonNull String name, @NonNull Object body){
+    messages.add(new StockRequestMetaDataMessage(name, body.toString()));
+  }
+  public void addMessage(@NonNull String name, @NonNull Object... body){
+    StringBuilder sb = new StringBuilder();
+    for(Object part : body){
+      sb.append(part.toString());
+    }
+    messages.add(new StockRequestMetaDataMessage(name, sb.toString()));
   }
 
 }

@@ -5,14 +5,16 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
-public class DateDeserializer extends JsonDeserializer<LocalDateTime> {
+public class DateDeserializer extends JsonDeserializer<OffsetDateTime> {
 
   @Override
-  public LocalDateTime deserialize(JsonParser jsonParser,
+  public OffsetDateTime deserialize(JsonParser jsonParser,
       DeserializationContext deserializationContext) throws IOException {
     //AlphaVantage only *sometimes* sends the time
     DateTimeFormatter formatter = new DateTimeFormatterBuilder()
@@ -25,6 +27,6 @@ public class DateDeserializer extends JsonDeserializer<LocalDateTime> {
         .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
         .toFormatter();
     String str = jsonParser.getValueAsString();
-    return LocalDateTime.parse(str, formatter);
+    return LocalDateTime.parse(str, formatter).atOffset(ZoneOffset.ofHours(-5));
   }
 }

@@ -1,6 +1,6 @@
 package org.galatea.starter.database;
 
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import javax.persistence.Query;
 import org.galatea.starter.object.Stock;
@@ -14,7 +14,7 @@ public class DatabaseConnectionHandler {
 
   private DatabaseConnectionHandler() {}
 
-  public static List<StockSymbol> getStockData(int stockId, LocalDate date, Session session) {
+  public static List<StockSymbol> getStockData(int stockId, OffsetDateTime date, Session session) {
     Query select = session.createQuery(
         "from StockSymbol where stockId = :stockId and tradeDate > :date order by tradeDate desc");
     select.setParameter("stockId", stockId);

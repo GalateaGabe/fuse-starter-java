@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,7 +54,7 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
   @JsonSerialize(using = DateSerializer.class)
   @JsonDeserialize(using = DateDeserializer.class)
   @JsonProperty(value = "trade_date")
-  private LocalDate tradeDate;
+  private OffsetDateTime tradeDate;
   @JsonIgnore
   private LocalTime updateTime;
 
@@ -62,17 +64,18 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
 
     //update any item that exists in both
     sourceList.forEach(stock1 -> {
-      StockSymbol refresh = updateMap.get(stock1.getTradeDate());
+      LocalDate key = stock1.getTradeDate().toLocalDate();
+      StockSymbol refresh = updateMap.get(key);
       if (refresh != null) {
         stock1.update(refresh);
-        updateMap.remove(refresh);
+        updateMap.remove(key);
       }
     });
     //if there are new items that weren't in the old list, append them to and sort the list.
     if (!updateMap.isEmpty()) {
       updateMap.forEach((date, stock2) -> {
         stock2.setStockId(stockId);
-        stock2.setTradeDate(date);
+        stock2.setTradeDate(date.atStartOfDay().atOffset(ZoneOffset.ofHours(-5)));
         sourceList.add(stock2);
       });
     }

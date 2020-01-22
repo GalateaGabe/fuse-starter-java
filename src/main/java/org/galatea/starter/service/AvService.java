@@ -1,6 +1,9 @@
 package org.galatea.starter.service;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,10 +43,10 @@ public class AvService {
       Map<LocalDate, StockSymbol> map = response.getSymbols();
       List<StockSymbol> symbols = new ArrayList<>();
       map.forEach((date, data) -> {
-        data.setTradeDate(date);
+        data.setTradeDate(date.atTime(OffsetTime.of(0, 0, 0, 0, ZoneOffset.ofHours(-5))));
         symbols.add(data);
       });
-      LocalDate latestTrade = symbols.get(0).getTradeDate();
+      LocalDate latestTrade = symbols.get(0).getTradeDate().toLocalDate();
       LocalDate refreshDate = response.getMetaData().getLastRefresh().toLocalDate();
       //if the latest trade occurred today, then update the trade date to be the refresh date so
       //that we are aware it's (potentially) incomplete
@@ -57,10 +60,18 @@ public class AvService {
   }
 
   public AvResponse getAlphaVantageStockData(@NonNull String symbol, boolean full) {
+    AvResponse response;
     if (full) {
-      return avClient.getDailyTimeSeries(symbol);
+      response = avClient.getDailyTimeSeries(symbol);
     } else {
-      return avClient.getDailyTimeSeriesCompact(symbol);
+      response = avClient.getDailyTimeSeriesCompact(symbol);
     }
+    OffsetDateTime lastUpdate = response.getMetaData().getLastRefresh();
+    StockSymbol today = response.getSymbols().get(lastUpdate.toLocalDate());
+    if (today != null) {
+      today.setUpdateTime(lastUpdate.toLocalTime());
+    }
+    return response;
   }
 }
+
