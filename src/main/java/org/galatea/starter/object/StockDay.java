@@ -29,7 +29,7 @@ import org.galatea.starter.utils.json.serialization.MoneyDeserializer;
 @Entity
 @Table(name = "price")
 @IdClass(StockSymbolId.class)
-public class StockSymbol implements Serializable, Comparable<StockSymbol> {
+public class StockDay implements Serializable, Comparable<StockDay> {
 
   @Id
   @JsonIgnore
@@ -68,26 +68,27 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
    * @param response your map of new data with which to update
    * @return
    */
-  public static List<StockSymbol> updateAll(final List<StockSymbol> sourceList,
+  public static List<StockDay> updateAll(final List<StockDay> sourceList,
       final int stockId, final AvResponse response) {
-    final Map<LocalDate, StockSymbol> updateMap = response.getSymbols();
+    final Map<LocalDate, StockDay> updateMap = response.getSymbols();
 
     //update any item that exists in both
     sourceList.forEach(stock1 -> {
       final LocalDate key = stock1.getTradeDate().toLocalDate();
-      final StockSymbol refresh = updateMap.get(key);
+      final StockDay refresh = updateMap.get(key);
       if (refresh != null) {
         stock1.update(refresh);
         updateMap.remove(key);
       }
     });
-    //if there are new items that weren't in the old list, append them to and sort the list.
+    //if there are new items that weren't in the old list, append them to the list.
     if (!updateMap.isEmpty()) {
       updateMap.forEach((date, stock2) -> {
         stock2.setStockId(stockId);
         stock2.setTradeDate(date.atStartOfDay().atOffset(ZoneOffset.ofHours(-5)));
         sourceList.add(stock2);
       });
+
     }
     return sourceList;
 
@@ -97,7 +98,7 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
    * update this stock symbol with values from the given stock symbol.
    * @param other the object from which to get the new values.
    */
-  public void update(final StockSymbol other) {
+  public void update(final StockDay other) {
     //update anything non-null
     if (Objects.nonNull(other.getOpen())) {
       this.open = other.getOpen();
@@ -123,7 +124,7 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
   }
 
   @Override
-  public int compareTo(final StockSymbol other) {
+  public int compareTo(final StockDay other) {
     Objects.requireNonNull(other);
     if (this.getStockId() != other.getStockId()) {
       throw new IllegalArgumentException(

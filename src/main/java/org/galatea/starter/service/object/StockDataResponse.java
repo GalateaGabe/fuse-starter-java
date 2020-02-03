@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.galatea.starter.object.StockSymbol;
+import org.galatea.starter.object.StockDay;
 
 @Builder
 @Data
@@ -15,5 +15,5 @@ public class StockDataResponse {
   @JsonProperty(value = "meta_data")
   private StockRequestMetaData metaData;
   @JsonProperty(value = "data")
-  private List<StockSymbol> symbolList;
+  private List<StockDay> symbolList;
 }

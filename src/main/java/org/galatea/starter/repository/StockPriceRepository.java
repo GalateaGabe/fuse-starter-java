@@ -1,23 +1,43 @@
 package org.galatea.starter.repository;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.NonNull;
-import org.galatea.starter.object.StockSymbol;
+import org.galatea.starter.object.StockDay;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface StockPriceRepository extends JpaRepository<StockSymbol, Integer> {
+public interface StockPriceRepository extends JpaRepository<StockDay, Integer> {
 
-  List<StockSymbol> findByStockIdAndTradeDateAfterOrderByTradeDateDesc(final int stockId,
+  /**
+   * Given a stock id and a starting date, retrieve all stock data for this stock on days after the
+   * given date. does what it says on the tin.
+   */
+  List<StockDay> findByStockIdAndTradeDateAfterOrderByTradeDateDesc(final int stockId,
       @NonNull final OffsetDateTime date);
 
+  /**
+   * get the id of a given stock symbol, if it exists. null otherwise.
+   */
+  @Query(value = "select id from stock where symbol = ?1", nativeQuery = true)
+  Integer findStockIdBySymbol(final String symbol);
+
+  /**
+   * insert an entry for the given stock symbol into the stock table.
+   */
   @Modifying
-  @Query(value = "update price set open_price = ?1, high_price = ?2, low_price = ?3, "
-      + "close_price = ?4, volume = ?5, update_time = ?6 where stock_id = ?7 and trade_date = ?8",
-      nativeQuery = true)
-  void updateStockRecord(BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close,
-      BigDecimal volume);
+  @Transactional
+  @Query(value = "insert into stock(symbol) values (?1)", nativeQuery = true)
+  void insertStockRecord(@NonNull final String symbol);
+
+  /**
+   * insert an entry for the given stock symbol and name into the stock table.
+   */
+  @Modifying
+  @Query(value = "insert into stock(symbol, name) values (?1, ?2)", nativeQuery = true)
+  void insertStockRecord(@NonNull final String symbol, @NonNull final String name);
+
+
 }

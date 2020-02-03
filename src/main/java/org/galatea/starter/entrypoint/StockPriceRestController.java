@@ -14,8 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.aspect4log.Log;
 import net.sf.aspect4log.Log.Level;
-import org.galatea.starter.database.DatabaseConnectionHandler;
-import org.galatea.starter.object.StockSymbol;
+import org.galatea.starter.exception.StockSymbolNotFoundException;
+import org.galatea.starter.object.StockDay;
 import org.galatea.starter.repository.StockPriceRepository;
 import org.galatea.starter.service.AvService;
 import org.galatea.starter.service.object.AvResponse;
@@ -63,7 +63,7 @@ public class StockPriceRestController {
 
     final Instant start = Instant.now();
     final StockRequestMetaData metaData = new StockRequestMetaData();
-    List<StockSymbol> stockDataList;
+    List<StockDay> stockDataList;
 
     if (days > 0) {
       try (final Session session = getCurrentSession()) {
@@ -75,7 +75,11 @@ public class StockPriceRestController {
         metaData
             .setRequestTime(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         final String cacheStatus;
-        final int stockId = DatabaseConnectionHandler.selectOrInsertStock(symbol, session);
+        Integer stockId = repo.findStockIdBySymbol(symbol);
+        if (stockId == null) {
+          repo.insertStockRecord(symbol);
+          stockId = repo.findStockIdBySymbol(symbol);
+        }
 
         //subtract 1 day to make the search inclusive instead of exclusive
         stockDataList = repo.findByStockIdAndTradeDateAfterOrderByTradeDateDesc(stockId,
@@ -90,13 +94,15 @@ public class StockPriceRestController {
         if (hasMissingDays) {
           //the size for a compact call is 100 days worth of data, so only order full if needed.
           final AvResponse response = avService.getAlphaVantageStockData(symbol, days > 100);
-          StockSymbol.updateAll(stockDataList, stockId, response);
-          DatabaseConnectionHandler.updateStockRecords(stockDataList, stockId, session);
+
+          StockDay.updateAll(stockDataList, stockId, response);
+          repo.saveAll(stockDataList);
+
           cacheStatus = "missing days in cache were added during this request.";
         } else {
           //filter list to any days that have incomplete stock data, excluding today
           //ie - were acquired mid-day on a business day
-          final List<StockSymbol> requireUpdates =
+          final List<StockDay> requireUpdates =
               stockDataList.stream().filter(s ->
                   DateTimeUtils.duringBusinessHours(s.getUpdateTime())
                       && s.getTradeDate().toLocalDate().isBefore(startOfToday)
@@ -106,20 +112,24 @@ public class StockPriceRestController {
           if (!requireUpdates.isEmpty()) {
 
             final AvResponse response = avService.getAlphaVantageStockData(symbol, days > 100);
-            StockSymbol.updateAll(requireUpdates, stockId, response);
-            DatabaseConnectionHandler.updateStockRecords(requireUpdates, stockId, session);
+
+            StockDay.updateAll(requireUpdates, stockId, response);
+            repo.saveAll(requireUpdates);
+
             //otherwise, if the stock market is still open (or was open the last
             //time we checked), get new data for today.
             cacheStatus = "cache data was added / updated during this request.";
           } else {
-            final StockSymbol latest = stockDataList.get(0);
+            final StockDay latest = stockDataList.get(0);
             //if there's a request from today, and today's request
             // is from business hours, then we have to update the data
             if (!latest.getTradeDate().toLocalDate().isBefore(startOfToday) && DateTimeUtils
                 .duringBusinessHours(latest.getUpdateTime())) {
-              final StockSymbol refresh = avService.getStockPricesForRange(symbol, false).get(0);
+              final StockDay refresh = avService.getStockPricesForRange(symbol, false).get(0);
+
               latest.update(refresh);
-              DatabaseConnectionHandler.updateStockRecord(latest, stockId, session);
+              repo.save(latest);
+
               cacheStatus =
                   "data for today has been updated as of " + latest.getUpdateTime() + ".";
             } else {
@@ -141,9 +151,12 @@ public class StockPriceRestController {
         metaData.addMessage("days", "there were ", days - stockDataList.size(),
             " non-business day(s) in the requested range.");
 
-
         //try-with-resources / session.close() doesn't do this automatically?
         session.clear();
+      } catch (StockSymbolNotFoundException ex) {
+        metaData
+            .addMessage("error", "there was no stock with the symbol ", ex.getSymbol(), " found.");
+        stockDataList = Collections.emptyList();
       }
     } else {
       metaData.addMessage("error", "days must be a positive integer.");

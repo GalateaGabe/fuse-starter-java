@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.NonNull;
-import org.galatea.starter.object.StockSymbol;
+import org.galatea.starter.object.StockDay;
 import org.galatea.starter.utils.holiday.FederalHolidays;
 
 public class DateTimeUtils {
@@ -38,10 +38,10 @@ public class DateTimeUtils {
    */
   public static boolean missingDays(@NonNull final LocalDate startOfRange,
       @NonNull final LocalDate endOfRange,
-      final List<StockSymbol> stockData) {
+      final List<StockDay> stockData) {
 
     //send to map for easy searching
-    final Map<LocalDate, StockSymbol> stockDataMap = new HashMap<>();
+    final Map<LocalDate, StockDay> stockDataMap = new HashMap<>();
     stockData.forEach(stock -> stockDataMap.put(stock.getTradeDate().toLocalDate(), stock));
 
     //<= and ++day because we want the first to be exclusive and the second to be inclusive.
