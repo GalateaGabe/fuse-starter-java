@@ -17,6 +17,7 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import lombok.Data;
 import org.galatea.starter.service.object.AvResponse;
@@ -27,6 +28,7 @@ import org.galatea.starter.utils.json.serialization.MoneyDeserializer;
 @Data
 @Entity
 @Table(name = "price")
+@IdClass(StockSymbolId.class)
 public class StockSymbol implements Serializable, Comparable<StockSymbol> {
 
   @Id
@@ -58,14 +60,22 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
   @JsonIgnore
   private LocalTime updateTime;
 
-  public static List<StockSymbol> updateAll(List<StockSymbol> sourceList,
-      int stockId, AvResponse response) {
-    Map<LocalDate, StockSymbol> updateMap = response.getSymbols();
+  /**
+   * updates all of the stock symbols in the supplied list with data from the given update map.<br>
+   *   (if a matching date is found)
+   * @param sourceList the list you're updating
+   * @param stockId the id the stock in the database
+   * @param response your map of new data with which to update
+   * @return
+   */
+  public static List<StockSymbol> updateAll(final List<StockSymbol> sourceList,
+      final int stockId, final AvResponse response) {
+    final Map<LocalDate, StockSymbol> updateMap = response.getSymbols();
 
     //update any item that exists in both
     sourceList.forEach(stock1 -> {
-      LocalDate key = stock1.getTradeDate().toLocalDate();
-      StockSymbol refresh = updateMap.get(key);
+      final LocalDate key = stock1.getTradeDate().toLocalDate();
+      final StockSymbol refresh = updateMap.get(key);
       if (refresh != null) {
         stock1.update(refresh);
         updateMap.remove(key);
@@ -83,8 +93,11 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
 
   }
 
-
-  public void update(StockSymbol other) {
+  /**
+   * update this stock symbol with values from the given stock symbol.
+   * @param other the object from which to get the new values.
+   */
+  public void update(final StockSymbol other) {
     //update anything non-null
     if (Objects.nonNull(other.getOpen())) {
       this.open = other.getOpen();
@@ -95,7 +108,7 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
     if (Objects.nonNull(other.getLow())) {
       this.low = other.getLow();
     }
-    if (Objects.nonNull(other.getVolume())) {
+    if (other.getVolume() != 0D) {
       this.volume = other.getVolume();
     }
     if (Objects.nonNull(other.getClose())) {
@@ -110,12 +123,12 @@ public class StockSymbol implements Serializable, Comparable<StockSymbol> {
   }
 
   @Override
-  public int compareTo(StockSymbol other) {
+  public int compareTo(final StockSymbol other) {
     Objects.requireNonNull(other);
     if (this.getStockId() != other.getStockId()) {
       throw new IllegalArgumentException(
-          "Stock data is for different stocks. [" +
-              this.getStockId() + " vs " + other.getStockId() + "]");
+          "Stock data is for different stocks. ["
+              + this.getStockId() + " vs " + other.getStockId() + "]");
     }
     return this.getTradeDate().compareTo(other.getTradeDate());
   }

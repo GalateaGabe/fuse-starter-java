@@ -14,6 +14,6 @@ public class StockDataResponse {
 
   @JsonProperty(value = "meta_data")
   private StockRequestMetaData metaData;
-  @JsonProperty(value="data")
+  @JsonProperty(value = "data")
   private List<StockSymbol> symbolList;
 }

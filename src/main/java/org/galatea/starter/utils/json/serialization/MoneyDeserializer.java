@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 public class MoneyDeserializer extends JsonDeserializer<BigDecimal> {
 
   @Override
-  public BigDecimal deserialize(JsonParser jsonParser,
-      DeserializationContext deserializationContext) throws IOException {
+  public BigDecimal deserialize(final JsonParser jsonParser,
+      final DeserializationContext deserializationContext) throws IOException {
     return new BigDecimal(jsonParser.getValueAsString());
   }
 }

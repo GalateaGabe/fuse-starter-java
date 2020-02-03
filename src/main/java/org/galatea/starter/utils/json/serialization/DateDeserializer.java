@@ -14,10 +14,10 @@ import java.time.temporal.ChronoField;
 public class DateDeserializer extends JsonDeserializer<OffsetDateTime> {
 
   @Override
-  public OffsetDateTime deserialize(JsonParser jsonParser,
-      DeserializationContext deserializationContext) throws IOException {
+  public OffsetDateTime deserialize(final JsonParser jsonParser,
+      final DeserializationContext deserializationContext) throws IOException {
     //AlphaVantage only *sometimes* sends the time
-    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+    final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
         .appendPattern("yyyy-MM-dd")
         .optionalStart()
         .appendPattern(" HH:mm:ss")
@@ -26,7 +26,7 @@ public class DateDeserializer extends JsonDeserializer<OffsetDateTime> {
         .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
         .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
         .toFormatter();
-    String str = jsonParser.getValueAsString();
+    final String str = jsonParser.getValueAsString();
     return LocalDateTime.parse(str, formatter).atOffset(ZoneOffset.ofHours(-5));
   }
 }

@@ -29,14 +29,15 @@ public class AvService {
 
 
   /**
-   * Request data for the given stock symbol from AlphaVantage's api.
+   * get (100 latest| all) days of stock data from the alpha vantage API as a list.
    *
    * @param symbol Symbol of the requested stock, ex "MSFT"
    * @param full Whether to request the full 20+ year range, or just the last 100 days
    * @return the stock data from each day in the requested range, starting with the most recent day
    *     & in descending order
    */
-  public List<StockSymbol> getStockPricesForRange(@NonNull String symbol, boolean full) {
+  public List<StockSymbol> getStockPricesForRange(final @NonNull String symbol,
+      final boolean full) {
     AvResponse response = getAlphaVantageStockData(symbol, full);
 
     if (!response.getSymbols().isEmpty()) {
@@ -59,7 +60,13 @@ public class AvService {
     }
   }
 
-  public AvResponse getAlphaVantageStockData(@NonNull String symbol, boolean full) {
+  /**
+   * get a  response from alphavantage, including metadata and last trade time.
+   * @param symbol stock symbol to get the data for
+   * @param full full data or just last 100 business days
+   * @return
+   */
+  public AvResponse getAlphaVantageStockData(final @NonNull String symbol, final boolean full) {
     AvResponse response;
     if (full) {
       response = avClient.getDailyTimeSeries(symbol);

@@ -34,8 +34,9 @@ public class FederalHolidays {
 
   /**
    * The list of Federal Observances, as per section 6103(a) of title 5 of the United States Code.
-   *
+   * <p>
    * see http://www.law.cornell.edu/uscode/text/5/6103
+   * </p>
    */
   public enum Observance {
 
@@ -86,14 +87,14 @@ public class FederalHolidays {
     private final int weekOfMonth;
     private static final int NA = 0;
 
-    private Observance(Month month, int dayOfMonth) {
+    Observance(final Month month, final int dayOfMonth) {
       this.month = month;
       this.dayOfMonth = dayOfMonth;
       this.dayOfWeek = null;
       this.weekOfMonth = NA;
     }
 
-    private Observance(Month month, DayOfWeek dayOfWeek, int weekOfMonth) {
+    Observance(final Month month, final DayOfWeek dayOfWeek, final int weekOfMonth) {
       this.month = month;
       this.dayOfMonth = NA;
       this.dayOfWeek = dayOfWeek;
@@ -114,9 +115,9 @@ public class FederalHolidays {
    * Note, it is possible for the New Year's Day observance to be in the year previous to the one
    * provided. For example, New Years 2011 was observed on December 31st, 2010.
    */
-  public static LocalDate dateOf(Observance observance, int year) {
+  public static LocalDate dateOf(final Observance observance, final int year) {
     LocalDate ld;
-    YearMonth ym = YearMonth.of(year, observance.month);
+    final YearMonth ym = YearMonth.of(year, observance.month);
     if (observance.isFixedDate()) {
       ld = ym.atDay(observance.dayOfMonth);
     } else {
@@ -145,24 +146,24 @@ public class FederalHolidays {
    * day. If neither, leave the date unchanged. See Executive order 11582, February 11, 1971.
    *
    * @param ld - mutated if a weekend date
-   * @return
    */
-  private static LocalDate adjustForWeekendsIfNecessary(LocalDate ld) {
-    DayOfWeek dayOfWeek = ld.getDayOfWeek();
+  private static LocalDate adjustForWeekendsIfNecessary(final LocalDate ld) {
+    final DayOfWeek dayOfWeek = ld.getDayOfWeek();
     if (dayOfWeek == SATURDAY) {
-      ld = ld.minusDays(1);
+      return ld.minusDays(1);
     } else if (dayOfWeek == SUNDAY) {
-      ld = ld.plusDays(1);
+      return ld.plusDays(1);
+    } else {
+      return ld;
     }
-    return ld;
   }
 
   /**
    * Returns a list of all holidays present in a given year.
    */
   public static List<LocalDate> byYear(final int year) {
-    List<LocalDate> results = new ArrayList<>();
-    for (Observance holiday : Observance.values()) {
+    final List<LocalDate> results = new ArrayList<>();
+    for (final Observance holiday : Observance.values()) {
       results.add(dateOf(holiday, year));
     }
     return results;
@@ -172,9 +173,9 @@ public class FederalHolidays {
    * Returns a list of all holidays present in given years.
    */
   public static List<LocalDate> byYears(final List<Integer> years) {
-    List<LocalDate> results = new ArrayList<>();
-    for (int year : years) {
-      for (Observance holiday : Observance.values()) {
+    final List<LocalDate> results = new ArrayList<>();
+    for (final int year : years) {
+      for (final Observance holiday : Observance.values()) {
         results.add(dateOf(holiday, year));
       }
     }
