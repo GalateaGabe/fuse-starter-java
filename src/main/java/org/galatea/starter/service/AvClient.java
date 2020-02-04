@@ -18,7 +18,7 @@ public interface AvClient {
    * @return
    */
   @GetMapping(
-      "${spring.rest.avRequestDaily}&symbol={symbol}"
+      "${spring.rest.avStockDataDaily}&symbol={symbol}"
           + "&apikey=${spring.api.config.avApiKey}&outputsize=full")
   AvResponse getDailyTimeSeries(@PathVariable(name = "symbol") final String symbol);
 
@@ -28,7 +28,7 @@ public interface AvClient {
    * @return
    */
   @GetMapping(
-      "${spring.rest.avRequestDaily}&symbol={symbol}"
+      "${spring.rest.avStockDataDaily}&symbol={symbol}"
           + "&apikey=${spring.api.config.avApiKey}&outputsize=compact")
   AvResponse getDailyTimeSeriesCompact(@PathVariable(name = "symbol") final String symbol);
 }

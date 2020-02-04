@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManagerFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +21,6 @@ import org.galatea.starter.service.object.AvResponse;
 import org.galatea.starter.service.object.StockDataResponse;
 import org.galatea.starter.service.object.StockRequestMetaData;
 import org.galatea.starter.utils.DateTimeUtils;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -41,14 +38,7 @@ public class StockPriceRestController {
   @NonNull
   private AvService avService;
   @Autowired
-  private EntityManagerFactory entityManagerFactory;
-  @Autowired
   private StockPriceRepository repo;
-
-
-  private Session getCurrentSession() {
-    return entityManagerFactory.unwrap(SessionFactory.class).openSession();
-  }
 
   /**
    * Returns a list of stock prices for the given date range. Pulls from database first, but will
@@ -66,29 +56,28 @@ public class StockPriceRestController {
     List<StockDay> stockDataList;
 
     if (days > 0) {
-      try (final Session session = getCurrentSession()) {
-        final LocalDate startOfToday = LocalDate.now();
-        final LocalDate startOfRange = startOfToday.minusDays(days + 1L);
-        final ZoneOffset zone = ZoneOffset.ofHours(-5);
+      final LocalDate startOfToday = LocalDate.now();
+      final LocalDate startOfRange = startOfToday.minusDays(days + 1L);
+      final ZoneOffset zone = ZoneOffset.ofHours(-5);
 
-        metaData.setSymbol(symbol);
-        metaData
-            .setRequestTime(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-        final String cacheStatus;
-        Integer stockId = repo.findStockIdBySymbol(symbol);
-        if (stockId == null) {
-          repo.insertStockRecord(symbol);
-          stockId = repo.findStockIdBySymbol(symbol);
-        }
+      metaData.setSymbol(symbol);
+      metaData
+          .setRequestTime(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+      final String cacheStatus;
+      Integer stockId = repo.findStockIdBySymbol(symbol);
+      if (stockId == null) {
+        repo.insertStockRecord(symbol);
+        stockId = repo.findStockIdBySymbol(symbol);
+      }
 
-        //subtract 1 day to make the search inclusive instead of exclusive
-        stockDataList = repo.findByStockIdAndTradeDateAfterOrderByTradeDateDesc(stockId,
-            startOfRange.atStartOfDay().atOffset(zone).minusDays(1));
+      //subtract 1 day to make the search inclusive instead of exclusive
+      stockDataList = repo.findByStockIdAndTradeDateAfterOrderByTradeDateDesc(stockId,
+          startOfRange.atStartOfDay().atOffset(zone).minusDays(1));
 
-        //if the list is empty, or there are days missing from the request,
-        // we have to fetch all days.
-        /*TODO - ideally we would check whether or not the
-           missing days are within the short fetch range*/
+      //if the list is empty, or there are days missing from the request,
+      // we have to fetch all days.
+      //TODO - check whether or not the missing days are within the short fetch range
+      try {
         final boolean hasMissingDays = stockDataList.isEmpty()
             || DateTimeUtils.missingDays(startOfRange, startOfToday, stockDataList);
         if (hasMissingDays) {
@@ -137,25 +126,25 @@ public class StockPriceRestController {
 
             }
           }
+
+          //filter out any remaining days before the start date
+          stockDataList =
+              stockDataList.stream()
+                  .filter(stock -> !stock.getTradeDate().toLocalDate().isBefore(startOfRange))
+                  .collect(Collectors.toList());
+          Collections.sort(stockDataList);
+          Collections.reverse(stockDataList);
+
+          metaData.addMessage("cache", cacheStatus);
+          metaData.addMessage("days", "there were ", days - stockDataList.size(),
+              " non-business day(s) in the requested range.");
+
+
         }
-
-        //filter out any remaining days before the start date
-        stockDataList =
-            stockDataList.stream()
-                .filter(stock -> !stock.getTradeDate().toLocalDate().isBefore(startOfRange))
-                .collect(Collectors.toList());
-        Collections.sort(stockDataList);
-        Collections.reverse(stockDataList);
-
-        metaData.addMessage("cache", cacheStatus);
-        metaData.addMessage("days", "there were ", days - stockDataList.size(),
-            " non-business day(s) in the requested range.");
-
-        //try-with-resources / session.close() doesn't do this automatically?
-        session.clear();
       } catch (StockSymbolNotFoundException ex) {
         metaData
-            .addMessage("error", "there was no stock with the symbol ", ex.getSymbol(), " found.");
+            .addMessage("error", "there was no stock with the symbol ", ex.getSymbol(),
+                " found.");
         stockDataList = Collections.emptyList();
       }
     } else {

@@ -47,6 +47,7 @@ spring:
    rest:
       # this points at the local WireMock server in the test environment.
       avBasePath: http://localhost:${wiremock.server.port}/
+      avStockDataDaily: query?function=TIME_SERIES_DAILY
 
 ---
 # Dev properties go here
@@ -63,7 +64,7 @@ spring:
          avApiKey: RE1VLFFM7J2OSXLK
    rest:
       avBasePath: https://www.alphavantage.co
-      avRequestDaily: query?function=TIME_SERIES_DAILY
+      avStockDataDaily: query?function=TIME_SERIES_DAILY
 jpa:
    hibernate.ddl-auto: update
    generate-ddl: false

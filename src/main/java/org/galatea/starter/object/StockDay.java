@@ -51,7 +51,7 @@ public class StockDay implements Serializable, Comparable<StockDay> {
   @Column(name = "ClosePrice")
   private BigDecimal close;
   @JsonAlias(value = "5. volume")
-  private double volume;
+  private long volume;
   @Id
   @JsonSerialize(using = DateSerializer.class)
   @JsonDeserialize(using = DateDeserializer.class)
