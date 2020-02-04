@@ -1,6 +1,8 @@
 package org.galatea.starter.utils;
 
 import java.time.LocalTime;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class DateTimeUtilsTest {
@@ -9,7 +11,7 @@ public class DateTimeUtilsTest {
   public void duringBusinessHours_True() {
     final LocalTime time = LocalTime.of(11, 0);
 
-    assert DateTimeUtils.duringBusinessHours(time);
+    assertTrue(DateTimeUtils.duringBusinessHours(time));
 
   }
 
@@ -17,6 +19,6 @@ public class DateTimeUtilsTest {
   public void duringBusinessHours_False() {
     final LocalTime time = LocalTime.of(0, 0);
 
-    assert !DateTimeUtils.duringBusinessHours(time);
+    assertFalse(DateTimeUtils.duringBusinessHours(time));
   }
 }

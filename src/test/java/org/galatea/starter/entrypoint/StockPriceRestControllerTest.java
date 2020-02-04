@@ -1,7 +1,8 @@
 package org.galatea.starter.entrypoint;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,6 +45,15 @@ public class StockPriceRestControllerTest extends ASpringTest {
         .andExpect(jsonPath("data[0].close", is(equalTo(85.7000))))
         .andExpect(jsonPath("data[0].volume", is(equalTo(1014640))))
         .andExpect(jsonPath("data[0].trade_date", is(equalTo("2020-02-03"))))
+        .andReturn();
+  }
+  @Test
+  public void getRecentStockPrice_badDate() throws Exception {
+
+    MvcResult result = mvc.perform(MockMvcRequestBuilders.get("/prices?stock=MSFT&days=-1")
+        .accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+        .andExpect(jsonPath("meta_data.messages.error", is(equalTo("days must be a positive integer."))))
+        .andExpect(jsonPath("data", empty()))
         .andReturn();
   }
 }

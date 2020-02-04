@@ -1,13 +1,11 @@
 package org.galatea.starter.exception;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public class StockSymbolNotFoundException extends Exception {
 
   @Getter
-  @Setter
-  private String symbol;
+  private final String symbol;
 
   /**
    * Thrown when the AV api does not think a stock exists with this symbol.

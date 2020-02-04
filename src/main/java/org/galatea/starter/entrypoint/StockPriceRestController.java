@@ -1,6 +1,5 @@
 package org.galatea.starter.entrypoint;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -51,7 +50,7 @@ public class StockPriceRestController {
   public StockDataResponse getRecentStockPrice(@RequestParam(name = "stock") final String symbol,
       @RequestParam(name = "days") final int days) {
 
-    final Instant start = Instant.now();
+    final long start = System.nanoTime();
     final StockRequestMetaData metaData = new StockRequestMetaData();
     List<StockDay> stockDataList;
 
@@ -76,7 +75,6 @@ public class StockPriceRestController {
 
       //if the list is empty, or there are days missing from the request,
       // we have to fetch all days.
-      //TODO - check whether or not the missing days are within the short fetch range
       try {
         final boolean hasMissingDays = stockDataList.isEmpty()
             || DateTimeUtils.missingDays(startOfRange, startOfToday, stockDataList);
@@ -127,32 +125,29 @@ public class StockPriceRestController {
             }
           }
 
-          //filter out any remaining days before the start date
-          stockDataList =
-              stockDataList.stream()
-                  .filter(stock -> !stock.getTradeDate().toLocalDate().isBefore(startOfRange))
-                  .collect(Collectors.toList());
-          Collections.sort(stockDataList);
-          Collections.reverse(stockDataList);
-
-          metaData.addMessage("cache", cacheStatus);
-          metaData.addMessage("days", "there were ", days - stockDataList.size(),
-              " non-business day(s) in the requested range.");
-
-
         }
+        metaData.addMessage("cache", cacheStatus);
+        metaData.addMessage("days", "there were ", days - stockDataList.size(),
+            " non-business day(s) in the requested range.");
       } catch (StockSymbolNotFoundException ex) {
         metaData
             .addMessage("error", "there was no stock with the symbol ", ex.getSymbol(),
                 " found.");
         stockDataList = Collections.emptyList();
       }
+      //filter out any remaining days before the start date
+      stockDataList =
+          stockDataList.stream()
+              .filter(stock -> !stock.getTradeDate().toLocalDate().isBefore(startOfRange))
+              .collect(Collectors.toList());
+      Collections.sort(stockDataList);
+      Collections.reverse(stockDataList);
     } else {
       metaData.addMessage("error", "days must be a positive integer.");
       stockDataList = Collections.emptyList();
     }
-    final Instant end = Instant.now();
-    metaData.addMessage("time", "the request took ", end.toEpochMilli() - start.toEpochMilli(),
+    final long end = System.nanoTime();
+    metaData.addMessage("time", "the request took ", (end - start) / 1000000,
         "ms to complete.");
     return new StockDataResponse(metaData, stockDataList);
   }

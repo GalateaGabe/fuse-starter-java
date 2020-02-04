@@ -1,5 +1,8 @@
 package org.galatea.starter.utils.holiday;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +16,7 @@ public class FederalHolidaysTest {
     final Observance ny1 = Observance.NEW_YEARS_DAY;
     final LocalDate ny2 = LocalDate.of(2020, 1, 1);
 
-    assert FederalHolidays.dateOf(ny1, ny2.getYear()).isEqual(ny2);
+    assertTrue(FederalHolidays.dateOf(ny1, ny2.getYear()).isEqual(ny2));
   }
 
   @Test
@@ -27,7 +30,8 @@ public class FederalHolidaysTest {
 
     final List<LocalDate> actual = FederalHolidays.byYear(2020);
 
-    assert expected.containsAll(actual) && actual.containsAll(expected);
+    assertTrue(expected.containsAll(actual));
+    assertTrue(actual.containsAll(expected));
 
   }
 
@@ -47,7 +51,8 @@ public class FederalHolidaysTest {
 
     final List<LocalDate> actual = FederalHolidays.byYears(Arrays.asList(2020, 2021));
 
-    assert expected.containsAll(actual) && actual.containsAll(expected);
+    assertTrue(expected.containsAll(actual));
+    assertTrue(actual.containsAll(expected));
 
   }
 

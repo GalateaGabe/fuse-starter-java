@@ -19,7 +19,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.galatea.starter.service.object.AvResponse;
 import org.galatea.starter.utils.json.serialization.DateDeserializer;
 import org.galatea.starter.utils.json.serialization.DateSerializer;
@@ -27,8 +30,11 @@ import org.galatea.starter.utils.json.serialization.MoneyDeserializer;
 
 @Data
 @Entity
+@Builder
 @Table(name = "price")
 @IdClass(StockSymbolId.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class StockDay implements Serializable, Comparable<StockDay> {
 
   @Id
