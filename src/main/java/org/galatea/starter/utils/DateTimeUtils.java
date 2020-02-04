@@ -25,11 +25,9 @@ public class DateTimeUtils {
     if (localTime == null) {
       return false;
     }
-
     final LocalTime exchangeOpen = LocalTime.of(9, 30);
     final LocalTime exchangeClose = LocalTime.of(16, 00);
     return !localTime.isBefore(exchangeOpen) && !localTime.isAfter(exchangeClose);
-
   }
 
   /**
@@ -54,11 +52,10 @@ public class DateTimeUtils {
           IntStream.rangeClosed(startOfRange.getYear(), endOfRange.getYear())
               .boxed().collect(Collectors.toList());
       final List<LocalDate> holidays = FederalHolidays.byYears(years);
-      if (weekend.contains(date.getDayOfWeek())
-          || holidays.contains(date)) {
+
+      if (weekend.contains(date.getDayOfWeek()) || holidays.contains(date)) {
         continue;
       }
-
       if (!stockDataMap.containsKey(date)) {
         return true;
       }

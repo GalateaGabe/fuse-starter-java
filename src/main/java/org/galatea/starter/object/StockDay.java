@@ -41,8 +41,8 @@ public class StockDay implements Serializable, Comparable<StockDay> {
   @JsonIgnore
   private int stockId;
   @JsonDeserialize(using = MoneyDeserializer.class)
-  @Column(name = "OpenPrice")
   @JsonAlias(value = "1. open")
+  @Column(name = "OpenPrice")
   private BigDecimal open;
   @JsonDeserialize(using = MoneyDeserializer.class)
   @JsonAlias(value = "2. high")
@@ -68,11 +68,11 @@ public class StockDay implements Serializable, Comparable<StockDay> {
 
   /**
    * updates all of the stock symbols in the supplied list with data from the given update map.<br>
-   *   (if a matching date is found)
+   * (if a matching date is found)
+   *
    * @param sourceList the list you're updating
    * @param stockId the id the stock in the database
    * @param response your map of new data with which to update
-   * @return
    */
   public static List<StockDay> updateAll(final List<StockDay> sourceList,
       final int stockId, final AvResponse response) {
@@ -89,19 +89,19 @@ public class StockDay implements Serializable, Comparable<StockDay> {
     });
     //if there are new items that weren't in the old list, append them to the list.
     if (!updateMap.isEmpty()) {
+      ZoneOffset offset = ZoneOffset.ofHours(-5);
       updateMap.forEach((date, stock2) -> {
         stock2.setStockId(stockId);
-        stock2.setTradeDate(date.atStartOfDay().atOffset(ZoneOffset.ofHours(-5)));
+        stock2.setTradeDate(date.atStartOfDay().atOffset(offset));
         sourceList.add(stock2);
       });
-
     }
     return sourceList;
-
   }
 
   /**
    * update this stock symbol with values from the given stock symbol.
+   *
    * @param other the object from which to get the new values.
    */
   public void update(final StockDay other) {

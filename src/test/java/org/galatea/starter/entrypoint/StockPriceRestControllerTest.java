@@ -36,7 +36,7 @@ public class StockPriceRestControllerTest extends ASpringTest {
   @Test
   public void getRecentStockPrice_compact() throws Exception {
 
-    MvcResult result = mvc.perform(MockMvcRequestBuilders.get("/prices?stock=MSFT&days=1")
+    MvcResult result = mvc.perform(MockMvcRequestBuilders.get("/prices?stock=MSFT&days=5")
         .accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
         .andExpect(jsonPath("meta_data.symbol", is(equalTo("MSFT"))))
         .andExpect(jsonPath("data[0].open", is(equalTo(85.9400))))
