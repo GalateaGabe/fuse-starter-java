@@ -16,6 +16,8 @@ import org.galatea.starter.utils.DateTimeUtils;
 
 public class StockPriceService {
 
+  private StockPriceService() {}
+
   static final ZoneOffset zone = ZoneOffset.ofHours(-5);
 
   /**
