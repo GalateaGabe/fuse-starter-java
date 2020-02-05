@@ -28,7 +28,7 @@ public class StockPriceService {
    * @param days how many days back to collect data from
    * @return List of {@link StockDay} objects, for each business day up to <code>days</code> ago.
    */
-  public static List<StockDay> getStockDataForRange(final String symbol,
+  public static List<StockDay> getHistoricalStockData(final String symbol,
       final StockPriceRepository repo, final AvService avService, final @NonNull Integer days)
       throws StockSymbolNotFoundException {
 

@@ -50,14 +50,13 @@ public class StockPriceRestController {
     final StockRequestMetaData metaData = new StockRequestMetaData();
     List<StockDay> stockDataList;
 
-    if (days > 0) {
+    metaData.setSymbol(symbol);
 
-      metaData.setSymbol(symbol);
+    if (days > 0) {
       metaData
           .setRequestTime(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-
       try {
-        stockDataList = StockPriceService.getStockDataForRange(symbol, repo, avService, days);
+        stockDataList = StockPriceService.getHistoricalStockData(symbol, repo, avService, days);
         metaData.addMessage("days", "", days - stockDataList.size(),
             " non-business day(s) present in the requested range.");
       } catch (StockSymbolNotFoundException ex) {
