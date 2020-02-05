@@ -60,8 +60,7 @@ public class StockPriceService {
       stockList = orderStockList(symbol, stockId, days > 100, avService);
       repo.saveAll(stockList);
     } else {
-      //filter list to any days that have incomplete stock data, excluding today
-      //ie - were acquired mid-day on a business day
+      //check if any of the data from the database contains partial data
       boolean requiresUpdates =
           stockList.stream().anyMatch(s ->
               DateTimeUtils.duringBusinessHours(s.getUpdateTime())
