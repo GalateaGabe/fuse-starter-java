@@ -58,7 +58,7 @@ public class StockPriceRestController {
       try {
         stockDataList = StockPriceService.getHistoricalStockData(symbol, repo, avService, days);
         metaData.addMessage("days", "", days - stockDataList.size(),
-            " non-business day(s) present in the requested range.");
+            " day(s) in the requested range had no activity.");
       } catch (StockSymbolNotFoundException ex) {
         metaData.addMessage("error", "no stock with the symbol ", ex.getSymbol(), " found.");
         stockDataList = Collections.emptyList();

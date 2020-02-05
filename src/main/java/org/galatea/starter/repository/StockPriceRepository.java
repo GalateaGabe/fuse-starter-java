@@ -15,7 +15,8 @@ public interface StockPriceRepository extends JpaRepository<StockDay, Integer> {
    * Given a stock id and a starting date, retrieve all stock data for this stock on days after the
    * given date. does what it says on the tin.
    */
-  List<StockDay> findByStockIdAndTradeDateAfterOrderByTradeDateDesc(final int stockId,
+  @Query(value = "select * from price where stock_id = ?1 and trade_date >= ?2 ", nativeQuery = true)
+  List<StockDay> findStockHistoryById(final int stockId,
       @NonNull final OffsetDateTime date);
 
   /**

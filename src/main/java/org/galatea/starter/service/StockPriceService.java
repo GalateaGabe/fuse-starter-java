@@ -1,6 +1,7 @@
 package org.galatea.starter.service;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,8 +44,8 @@ public class StockPriceService {
       stockId = repo.findStockIdBySymbol(symbol);
       stockDataList = new ArrayList<>();
     } else {
-      stockDataList = repo.findByStockIdAndTradeDateAfterOrderByTradeDateDesc(stockId,
-          startOfRange.atStartOfDay().atOffset(zone));
+      OffsetDateTime offsetStart = startOfRange.atStartOfDay().atOffset(zone);
+      stockDataList = repo.findStockHistoryById(stockId, offsetStart);
     }
 
     //if the list is empty, or there are days missing from the request,
