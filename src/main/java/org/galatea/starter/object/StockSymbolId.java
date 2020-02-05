@@ -7,5 +7,5 @@ import lombok.Data;
 @Data
 public class StockSymbolId implements Serializable {
   private int stockId;
-  private OffsetDateTime tradeDate;
+  private OffsetDateTime eventDate;
 }

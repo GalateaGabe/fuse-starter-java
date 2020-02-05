@@ -44,7 +44,7 @@ public class StockPriceRestControllerTest extends ASpringTest {
         .andExpect(jsonPath("data[0].low", is(equalTo(85.2400))))
         .andExpect(jsonPath("data[0].close", is(equalTo(85.7000))))
         .andExpect(jsonPath("data[0].volume", is(equalTo(1014640))))
-        .andExpect(jsonPath("data[0].trade_date", is(equalTo("2020-02-03"))))
+        .andExpect(jsonPath("data[0].event_date", is(equalTo("2020-02-03"))))
         .andReturn();
   }
   @Test

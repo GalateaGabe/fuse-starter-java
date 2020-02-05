@@ -11,15 +11,14 @@ public class StockSymbolNotFoundException extends Exception {
    * Thrown when the AV api does not think a stock exists with this symbol.
    */
   public StockSymbolNotFoundException(final String symbol) {
-    super("No Stock found with symbol: " + symbol);
-    this.symbol = symbol;
+    this(symbol, null);
   }
 
   /**
    * Thrown when the AV api does not think a stock exists with this symbol.
    */
   public StockSymbolNotFoundException(final String symbol,final  Throwable throwable) {
-    super("No Stock found with symbol: " + symbol, throwable);
+    super("No data for stock found with symbol: " + symbol, throwable);
     this.symbol = symbol;
   }
 }

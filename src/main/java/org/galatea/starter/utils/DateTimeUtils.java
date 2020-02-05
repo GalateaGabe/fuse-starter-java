@@ -40,7 +40,7 @@ public class DateTimeUtils {
 
     //send to map for easy searching
     final Map<LocalDate, StockDay> stockDataMap = new HashMap<>();
-    stockData.forEach(stock -> stockDataMap.put(stock.getTradeDate().toLocalDate(), stock));
+    stockData.forEach(stock -> stockDataMap.put(stock.getEventDate().toLocalDate(), stock));
 
     //<= and ++day because we want the first to be exclusive and the second to be inclusive.
     for (int day = 0; day < ChronoUnit.DAYS.between(startOfRange, endOfRange); day++) {

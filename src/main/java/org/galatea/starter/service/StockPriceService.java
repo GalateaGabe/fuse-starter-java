@@ -38,48 +38,49 @@ public class StockPriceService {
     final LocalDate startOfToday = LocalDate.now();
     final LocalDate startOfRange = startOfToday.minusDays(days);
 
-    List<StockDay> stockDataList;
+    List<StockDay> stockList;
 
     Integer stockId = repo.findStockIdBySymbol(symbol);
     if (stockId == null) {
       repo.insertStockRecord(symbol);
       stockId = repo.findStockIdBySymbol(symbol);
-      stockDataList = new ArrayList<>();
+      stockList = new ArrayList<>();
     } else {
       OffsetDateTime offsetStart = startOfRange.atStartOfDay().atOffset(zone);
-      stockDataList = repo.findStockHistoryById(stockId, offsetStart);
+      //fetch historical info on stock from the database, up to _days_ ago
+      stockList = repo.findStockHistoryById(stockId, offsetStart);
     }
 
     //if the list is empty, or there are days missing from the request,
     // we have to fetch all days.
-    final boolean hasMissingDays = stockDataList.isEmpty()
-        || DateTimeUtils.missingDays(startOfRange, startOfToday, stockDataList);
+    final boolean hasMissingDays = stockList.isEmpty()
+        || DateTimeUtils.missingDays(startOfRange, startOfToday, stockList);
     if (hasMissingDays) {
       //the size for a compact call is 100 days worth of data, so only order full if needed.
-      refreshStockList(stockDataList, symbol, stockId, days > 100, repo, avService);
-
+      stockList = orderStockList(symbol, stockId, days > 100, avService);
+      repo.saveAll(stockList);
     } else {
       //filter list to any days that have incomplete stock data, excluding today
       //ie - were acquired mid-day on a business day
-      final List<StockDay> requireUpdates =
-          stockDataList.stream().filter(s ->
+      boolean requiresUpdates =
+          stockList.stream().anyMatch(s ->
               DateTimeUtils.duringBusinessHours(s.getUpdateTime())
-                  && s.getTradeDate().toLocalDate().isBefore(startOfToday)
-          ).collect(Collectors.toList());
+                  && s.getEventDate().toLocalDate().isBefore(startOfToday)
+          );
 
       //if there are any days with incomplete data, get a new fresh list and update them.
-      if (!requireUpdates.isEmpty()) {
-        refreshStockList(requireUpdates, symbol, stockId, days > 100, repo, avService);
-
+      if (requiresUpdates) {
+        stockList = orderStockList(symbol, stockId, days > 100, avService);
+        repo.saveAll(stockList);
         //otherwise, if the stock market is still open (or was open the last
         //time we checked), get new data for today.
       } else {
-        final StockDay latest = stockDataList.get(0);
+        final StockDay latest = stockList.get(0);
         //if there's a request from today, and today's request
         // is from business hours, then we have to update the data
-        if (!latest.getTradeDate().toLocalDate().isBefore(startOfToday) && DateTimeUtils
+        if (!latest.getEventDate().toLocalDate().isBefore(startOfToday) && DateTimeUtils
             .duringBusinessHours(latest.getUpdateTime())) {
-          final StockDay refresh = avService.getStockPricesForRange(symbol, false).get(0);
+          final StockDay refresh = getMostRecentDay(symbol, avService);
 
           latest.update(refresh);
           repo.save(latest);
@@ -87,25 +88,33 @@ public class StockPriceService {
       }
     }
     //filter out any remaining days before the start date, sort descending, and return.
-    return stockDataList.stream().filter(stock ->
-        stock.getTradeDate().toLocalDate().isAfter(startOfRange)
+    return stockList.stream().filter(stock ->
+        stock.getEventDate().toLocalDate().isAfter(startOfRange)
     ).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
   }
 
+  private static StockDay getMostRecentDay(final String symbol, final AvService avService)
+      throws StockSymbolNotFoundException {
+    List<StockDay> days = orderStockList(symbol, 0, false, avService);
+    if (!days.isEmpty()) {
+      return days.get(0);
+    } else {
+      throw new StockSymbolNotFoundException(symbol);
+    }
+  }
+
   /**
-   * Update a list (or sublist) of stocks with data from alphavantage. the parameter list will be
-   * modified to update any partial or missing entries.
+   * get a new list from alphavantage and write the results to the database. any existing entries
+   * should be updated.
    */
-  private static List<StockDay> refreshStockList(final List<StockDay> stockDataList,
-      final String symbol, final Integer stockId, final boolean full,
-      final StockPriceRepository repo, final AvService avService)
+  private static List<StockDay> orderStockList(final String symbol, final Integer stockId,
+      final boolean full, final AvService avService)
       throws StockSymbolNotFoundException {
 
     final AvResponse response = avService.getAlphaVantageStockData(symbol, full);
-    StockDay.updateAll(stockDataList, stockId, response.getSymbols());
 
-    return repo.saveAll(stockDataList);
+    return response.resultsAsList(stockId);
   }
 }
 
