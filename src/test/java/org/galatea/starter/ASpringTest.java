@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import junitparams.mappers.IdentityMapper;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -47,11 +48,11 @@ public abstract class ASpringTest {
     }
   }
 
-  public static String readData(final String fileName) throws IOException {
+  public static String readData(@NonNull final String fileName) throws IOException {
     return IOUtils.toString(ASpringTest.class.getClassLoader().getResourceAsStream(fileName));
   }
 
-  public static byte[] readBytes(final String fileName) throws IOException {
+  public static byte[] readBytes(@NonNull final String fileName) throws IOException {
     return IOUtils.toByteArray(ASpringTest.class.getClassLoader().getResourceAsStream(fileName));
   }
 
