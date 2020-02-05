@@ -48,7 +48,7 @@ public class StockPriceRestController {
 
     final long start = System.nanoTime();
     final StockRequestMetaData metaData = new StockRequestMetaData();
-    List<StockDay> stockDataList;
+    List<StockDay> stockList;
 
     metaData.setSymbol(symbol);
 
@@ -56,21 +56,21 @@ public class StockPriceRestController {
       metaData
           .setRequestTime(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
       try {
-        stockDataList = StockPriceService.getHistoricalStockData(symbol, repo, avService, days);
-        metaData.addMessage("days", "", days - stockDataList.size(),
+        stockList = StockPriceService.getHistoricalStockData(symbol, repo, avService, days);
+        metaData.addMessage("days", "", days - stockList.size(),
             " day(s) in the requested range had no activity.");
       } catch (StockSymbolNotFoundException ex) {
         metaData.addMessage("error", "no stock with the symbol ", ex.getSymbol(), " found.");
-        stockDataList = Collections.emptyList();
+        stockList = Collections.emptyList();
       }
     } else {
       metaData.addMessage("error", "days must be a positive integer.");
-      stockDataList = Collections.emptyList();
+      stockList = Collections.emptyList();
     }
     final long end = System.nanoTime();
     metaData.addMessage("time", "the request took ", (end - start) / 1000000,
         "ms to complete.");
-    return new StockDataResponse(metaData, stockDataList);
+    return new StockDataResponse(metaData, stockList);
   }
 
 
