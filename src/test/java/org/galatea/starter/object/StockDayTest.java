@@ -2,7 +2,6 @@ package org.galatea.starter.object;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.galatea.starter.service.object.AvResponse;
 import org.junit.Test;
 
 public class StockDayTest {
@@ -64,10 +62,9 @@ public class StockDayTest {
       days2.put(day.getTradeDate().toLocalDate(), update);
     });
 
-    AvResponse response = AvResponse.builder().symbols(days2).build();
 
     //perform the action we're actually testing
-    StockDay.updateAll(days1, stockId, response);
+    StockDay.updateAll(days1, stockId, days2);
 
     //there should be days here
     assertFalse(days1.isEmpty());

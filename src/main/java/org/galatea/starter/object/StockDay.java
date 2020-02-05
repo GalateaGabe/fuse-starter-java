@@ -23,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.galatea.starter.service.object.AvResponse;
 import org.galatea.starter.utils.json.serialization.DateDeserializer;
 import org.galatea.starter.utils.json.serialization.DateSerializer;
 import org.galatea.starter.utils.json.serialization.MoneyDeserializer;
@@ -67,16 +66,16 @@ public class StockDay implements Serializable, Comparable<StockDay> {
   private LocalTime updateTime;
 
   /**
-   * updates all of the stock symbols in the supplied list with data from the given update map.<br>
-   * (if a matching date is found)
+   * updates all of the stock symbols in the given list with data from the given update map if a
+   * matching date is found. for any days that aren't in the list already, they're appended with the
+   * LocalDate key embedded in the object as the TradeDate.
    *
    * @param sourceList the list you're updating
    * @param stockId the id the stock in the database
-   * @param response your map of new data with which to update
+   * @param updateMap your map of new data with which to update
    */
   public static List<StockDay> updateAll(final List<StockDay> sourceList,
-      final int stockId, final AvResponse response) {
-    final Map<LocalDate, StockDay> updateMap = response.getSymbols();
+      final int stockId, final Map<LocalDate, StockDay> updateMap) {
 
     //update any item that exists in both
     sourceList.forEach(stock1 -> {
@@ -87,7 +86,8 @@ public class StockDay implements Serializable, Comparable<StockDay> {
         updateMap.remove(key);
       }
     });
-    //if there are new items that weren't in the old list, append them to the list.
+    //if there are new items that weren't in the old list, and
+    // append them to the list with the local date key as the trade date.
     if (!updateMap.isEmpty()) {
       ZoneOffset offset = ZoneOffset.ofHours(-5);
       updateMap.forEach((date, stock2) -> {
@@ -95,6 +95,7 @@ public class StockDay implements Serializable, Comparable<StockDay> {
         stock2.setTradeDate(date.atStartOfDay().atOffset(offset));
         sourceList.add(stock2);
       });
+      updateMap.clear();
     }
     return sourceList;
   }

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -84,15 +84,11 @@ public class StockPriceService {
         }
       }
     }
-    //filter out any remaining days before the start date
-    stockDataList = stockDataList.stream().filter(
-        stock -> stock.getTradeDate().toLocalDate().isAfter(startOfRange)
-    ).collect(Collectors.toList());
+    //filter out any remaining days before the start date, sort descending, and return.
+    return stockDataList.stream().filter(stock ->
+        stock.getTradeDate().toLocalDate().isAfter(startOfRange)
+    ).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
-    Collections.sort(stockDataList);
-    Collections.reverse(stockDataList);
-
-    return stockDataList;
   }
 
   /**
@@ -105,10 +101,9 @@ public class StockPriceService {
       throws StockSymbolNotFoundException {
 
     final AvResponse response = avService.getAlphaVantageStockData(symbol, full);
-    StockDay.updateAll(stockDataList, stockId, response);
-    repo.saveAll(stockDataList);
+    StockDay.updateAll(stockDataList, stockId, response.getSymbols());
 
-    return stockDataList;
+    return repo.saveAll(stockDataList);
   }
 }
 
