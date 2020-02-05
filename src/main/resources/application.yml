@@ -17,9 +17,6 @@ spring:
       database-platform: org.hibernate.dialect.MySQL5Dialect
 
 mvc:
-   iex:
-      getAllSymbolsPath: /iex/symbols
-      getLastTradedPricePath: /iex/lastTradedPrice
    av:
       getDailyTimeSeries: /prices
    max-size-trace-payload: 50000
@@ -58,13 +55,12 @@ spring:
       url: jdbc:mysql://localhost:3306/galatea_starter
       driver-class-name: com.mysql.cj.jdbc.Driver
       username: sa
-      password: Am!8_jag#_!cn^rK$OC1&(i3$mK7XX#p6KLhG2(kU3xfBffz41O2*ERU74kO1itj
+      password: 
    api:
       config:
-         avApiKey: RE1VLFFM7J2OSXLK
+         apiKey:
    rest:
-      avBasePath: https://www.alphavantage.co
-      avStockDataDaily: query?function=TIME_SERIES_DAILY
+      path:
 jpa:
    hibernate.ddl-auto: update
    generate-ddl: false
